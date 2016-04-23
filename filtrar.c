@@ -120,7 +120,7 @@ void prepare_filters(void) {
   for (i = 0; i < num_filters; i++) {
     int pp[2];
     if (pipe(pp) < 0) {
-      fprintf(stderr, ERR_CREATE_PIPE);
+      fprintf(stderr, "%s", ERR_CREATE_PIPE);
       exit(1);
     }
     switch (proc = fork()) {
@@ -203,7 +203,7 @@ void walk_directory(char* dir_name) {
 
 void alarm_handler() {
   int i;
-  fprintf(stderr, MSG_ALARM_ON);
+  fprintf(stderr, "%s", MSG_ALARM_ON);
   // Enviar señales para matar a los hijos.
   for (i = 0; i < num_filters; i++) {
     if (kill(pids[i], 0) == 1) {
