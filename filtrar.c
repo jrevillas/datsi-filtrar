@@ -65,25 +65,17 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-void print_status(char *filter_name, int status) {
-  if (WIFEXITED(status)) {
-    // Código de terminación del proceso.
-    fprintf(stderr, END_PROC_CODE, filter_name, WEXITSTATUS(status));
-  } else {
-    // Muestra la señal que ha matado al proceso.
-    fprintf(stderr, END_PROC_SIGNAL, filter_name, WTERMSIG(status));
-  }
-}
-
-void wait_termination(void) {
-  int i, status;
-  close(1);
+void alarm_handler() {
+  int i;
+  fprintf(stderr, "%s", MSG_ALARM_ON);
+  // Enviar señales para matar a los hijos.
   for (i = 0; i < num_filters; i++) {
-    if (waitpid(pids[i], &status, 0) < 0) {
-      fprintf(stderr, ERR_WAIT_PROC, pids[i]);
-      exit(1);
+    if (kill(pids[i], 0) == 1) {
+      if ((kill(pids[i], SIGKILL)) < 0) {
+        fprintf(stderr, ERR_KILL_PROC, pids[i]);
+        exit(1);
+      }
     }
-    print_status(filters[i], status);
   }
 }
 
@@ -111,6 +103,37 @@ void apply_filter(char *filter_name) {
     }
   }
   dlclose(library);
+}
+
+int is_positive_number(char *str) {
+  int i;
+  for (i = 0; i < strlen(str); i++) {
+    if (!isdigit(str[i])) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+void prepare_alarm() {
+  // Sacar la variable de entorno.
+  char *timeout_str = getenv("FILTRAR_TIMEOUT");
+  if (timeout_str == NULL) {
+    return;
+  }
+  // Comprobar que es un entero positivo.
+  if (!is_positive_number(timeout_str)) {
+    fprintf(stderr, ERR_TIMEOUT_FORMAT, timeout_str);
+    exit(1);
+  }
+  int timeout = atoi(timeout_str);
+  fprintf(stderr, MSG_ALARM_READY, timeout);
+  // Armar la señal.
+  struct sigaction act;
+  act.sa_handler = &alarm_handler;
+  act.sa_flags = SA_RESTART;
+  sigaction(SIGALRM, &act, NULL);
+  alarm(timeout);
 }
 
 void prepare_filters(void) {
@@ -146,6 +169,28 @@ void prepare_filters(void) {
         dup2(pp[1], 1);
         close(pp[1]);
     }
+  }
+}
+
+void print_status(char *filter_name, int status) {
+  if (WIFEXITED(status)) {
+    // Código de terminación del proceso.
+    fprintf(stderr, END_PROC_CODE, filter_name, WEXITSTATUS(status));
+  } else {
+    // Muestra la señal que ha matado al proceso.
+    fprintf(stderr, END_PROC_SIGNAL, filter_name, WTERMSIG(status));
+  }
+}
+
+void wait_termination(void) {
+  int i, status;
+  close(1);
+  for (i = 0; i < num_filters; i++) {
+    if (waitpid(pids[i], &status, 0) < 0) {
+      fprintf(stderr, ERR_WAIT_PROC, pids[i]);
+      exit(1);
+    }
+    print_status(filters[i], status);
   }
 }
 
@@ -198,49 +243,4 @@ void walk_directory(char* dir_name) {
   }
   // Cerrar el directorio.
   closedir(dir);
-}
-
-void alarm_handler() {
-  int i;
-  fprintf(stderr, "%s", MSG_ALARM_ON);
-  // Enviar señales para matar a los hijos.
-  for (i = 0; i < num_filters; i++) {
-    if (kill(pids[i], 0) == 1) {
-      if ((kill(pids[i], SIGKILL)) < 0) {
-        fprintf(stderr, ERR_KILL_PROC, pids[i]);
-        exit(1);
-      }
-    }
-  }
-}
-
-int is_positive_number(char *str) {
-  int i;
-  for (i = 0; i < strlen(str); i++) {
-    if (!isdigit(str[i])) {
-      return 0;
-    }
-  }
-  return 1;
-}
-
-void prepare_alarm() {
-  // Sacar la variable de entorno.
-  char *timeout_str = getenv("FILTRAR_TIMEOUT");
-  if (timeout_str == NULL) {
-    return;
-  }
-  // Comprobar que es un entero positivo.
-  if (!is_positive_number(timeout_str)) {
-    fprintf(stderr, ERR_TIMEOUT_FORMAT, timeout_str);
-    exit(1);
-  }
-  int timeout = atoi(timeout_str);
-  fprintf(stderr, MSG_ALARM_READY, timeout);
-  // Armar la señal.
-  struct sigaction act;
-  act.sa_handler = &alarm_handler;
-  act.sa_flags = SA_RESTART;
-  sigaction(SIGALRM, &act, NULL);
-  alarm(timeout);
 }
