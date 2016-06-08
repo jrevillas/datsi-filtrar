@@ -6,7 +6,6 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -215,14 +214,14 @@ void alarm_handler() {
   }
 }
 
-bool is_positive_number(char *str) {
+int is_positive_number(char *str) {
   int i;
   for (i = 0; i < strlen(str); i++) {
     if (!isdigit(str[i])) {
-      return false;
+      return 0;
     }
   }
-  return true;
+  return 1;
 }
 
 void prepare_alarm() {
