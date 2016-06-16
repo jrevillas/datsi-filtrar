@@ -29,6 +29,7 @@ pid_t* pids;
 const char* END_PROC_CODE = "%s: %d\n";
 const char* END_PROC_SIGNAL = "%s: senyal %d\n";
 
+const char* ERR_BROKEN_PIPE = "Error al emitir el fichero '%s'\n";
 const char* ERR_CREATE_PIPE = "Error al crear el pipe\n";
 const char* ERR_CREATE_PROC = "Error al crear proceso %d\n";
 const char* ERR_EXEC_FILTER = "Error al ejecutar el filtro '%s'\n";
@@ -70,7 +71,7 @@ void alarm_handler() {
   fprintf(stderr, "%s", MSG_ALARM_ON);
   // Enviar señales para matar a los hijos.
   for (i = 0; i < num_filters; i++) {
-    if (kill(pids[i], 0) == 1) {
+    if (kill(pids[i], 0) == 0) {
       if ((kill(pids[i], SIGKILL)) < 0) {
         fprintf(stderr, ERR_KILL_PROC, pids[i]);
         exit(1);
@@ -130,8 +131,8 @@ void prepare_alarm() {
   fprintf(stderr, MSG_ALARM_READY, timeout);
   // Armar la señal.
   struct sigaction act;
-  act.sa_handler = &alarm_handler;
   act.sa_flags = SA_RESTART;
+  act.sa_handler = &alarm_handler;
   sigaction(SIGALRM, &act, NULL);
   alarm(timeout);
 }
@@ -228,9 +229,19 @@ void walk_directory(char* dir_name) {
       fprintf(stderr, MSG_OPEN_FILE, file_name);
       exit(0);
     }
+    // Instrucciones para ignorar la señal.
+    struct sigaction act;
+    act.sa_flags = 0;
+    act.sa_handler = SIG_IGN;
+    sigaction(SIGPIPE, &act, NULL);
     // Emitir contenido por la salida estándar.
     num_bytes = read(fd, file_content, MAX_FILE_SIZE);
     write(1, file_content, num_bytes);
+    if (errno == EPIPE) {
+      fprintf(stderr, ERR_BROKEN_PIPE, file_name);
+      close(fd);
+      exit(1);
+    }
     // Cerrar los descriptores.
     close(fd);
     // Reiniciar el contador de errores.
