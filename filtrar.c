@@ -81,10 +81,10 @@ void alarm_handler() {
 }
 
 void apply_filter(char *filter_name) {
-  char buffer_in[MAX_FILE_SIZE], buffer_out[MAX_FILE_SIZE];
-  void *library;
-  int  aux, num_bytes;
-  int (*filter) (char*, char*, int);
+  int   aux, num_bytes;
+  char  buffer_in[MAX_FILE_SIZE], buffer_out[MAX_FILE_SIZE];
+  int   (*filter) (char*, char*, int);
+  void* library;
   library = dlopen(filter_name, RTLD_LAZY);
   if (library == NULL) {
     fprintf(stderr, ERR_OPEN_LIB, filter_name);
@@ -119,7 +119,7 @@ int is_positive_number(char *str) {
 void prepare_alarm() {
   struct sigaction act;
   int    timeout;
-  char*  *timeout_str;
+  char*  timeout_str;
   // Consultar el valor de la variable de entorno.
   timeout_str = getenv("FILTRAR_TIMEOUT");
   if (timeout_str == NULL) {
@@ -140,10 +140,9 @@ void prepare_alarm() {
 }
 
 void prepare_filters(void) {
-  int  i, proc;
-  char *file_name;
+  char* file_name;
+  int   i, pp[2], proc;
   for (i = 0; i < num_filters; i++) {
-    int pp[2];
     if (pipe(pp) < 0) {
       fprintf(stderr, "%s", ERR_CREATE_PIPE);
       exit(1);
@@ -201,10 +200,10 @@ void wait_termination(void) {
 
 void walk_directory(char* dir_name) {
   DIR*   dir = NULL;
-  struct dirent* ent;
-  char   file_name[MAX_FILE_NAME];
-  char   file_content[MAX_FILE_SIZE];
+  struct dirent* entry;
   int    fd, num_bytes;
+  char   file_content[MAX_FILE_SIZE];
+  char   file_name[MAX_FILE_NAME];
   struct sigaction act;
   struct stat status;
   // Apertura del directorio.
@@ -214,13 +213,13 @@ void walk_directory(char* dir_name) {
     exit(1);
   }
   // Recorrer entradas del directorio.
-  while((ent = readdir(dir)) != NULL) {
-    if (ent->d_name[0] == '.') {
+  while((entry = readdir(dir)) != NULL) {
+    if (entry->d_name[0] == '.') {
       continue;
     }
     strcpy(file_name, dir_name);
     strcat(file_name, "/");
-    strcat(file_name, ent->d_name);
+    strcat(file_name, entry->d_name);
     if (stat(file_name, &status) < 0) {
       fprintf(stderr, MSG_STAT_FILE, file_name);
       exit(0);
@@ -246,12 +245,11 @@ void walk_directory(char* dir_name) {
       close(fd);
       exit(1);
     }
-    // Cerrar los descriptores.
     close(fd);
-    // Reiniciar el contador de errores.
+    // Limpiar registro de errores.
     errno = 0;
   }
-  // Tratar el error al leer el directorio.
+  // Tratar el error si no es posible leer el directorio.
   if (errno) {
     fprintf(stderr, ERR_READ_DIR, dir_name);
     exit(1);
