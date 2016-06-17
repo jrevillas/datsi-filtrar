@@ -117,20 +117,22 @@ int is_positive_number(char *str) {
 }
 
 void prepare_alarm() {
-  // Sacar la variable de entorno.
-  char *timeout_str = getenv("FILTRAR_TIMEOUT");
+  struct sigaction act;
+  int    timeout;
+  char*  *timeout_str;
+  // Consultar el valor de la variable de entorno.
+  timeout_str = getenv("FILTRAR_TIMEOUT");
   if (timeout_str == NULL) {
     return;
   }
-  // Comprobar que es un entero positivo.
+  // Comprobar que es un número entero y positivo.
   if (!is_positive_number(timeout_str)) {
     fprintf(stderr, ERR_TIMEOUT_FORMAT, timeout_str);
     exit(1);
   }
-  int timeout = atoi(timeout_str);
+  timeout = atoi(timeout_str);
   fprintf(stderr, MSG_ALARM_READY, timeout);
   // Armar la señal.
-  struct sigaction act;
   act.sa_flags = SA_RESTART;
   act.sa_handler = &alarm_handler;
   sigaction(SIGALRM, &act, NULL);
@@ -169,6 +171,8 @@ void prepare_filters(void) {
         close(pp[0]);
         dup2(pp[1], 1);
         close(pp[1]);
+        // Añadir los hijos a la posterior matanza de procesos.
+        pids[i] = getpid();
     }
   }
 }
@@ -201,6 +205,7 @@ void walk_directory(char* dir_name) {
   char   file_name[MAX_FILE_NAME];
   char   file_content[MAX_FILE_SIZE];
   int    fd, num_bytes;
+  struct sigaction act;
   struct stat status;
   // Apertura del directorio.
   dir = opendir(dir_name);
@@ -230,7 +235,6 @@ void walk_directory(char* dir_name) {
       exit(0);
     }
     // Instrucciones para ignorar la señal.
-    struct sigaction act;
     act.sa_flags = 0;
     act.sa_handler = SIG_IGN;
     sigaction(SIGPIPE, &act, NULL);
