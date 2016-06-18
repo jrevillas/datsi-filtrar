@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include <ctype.h>
 #include <dlfcn.h>
 #include <dirent.h>
 #include <errno.h>
@@ -57,21 +58,21 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
   // TODO (39, 40) ./filtrar _WORK3 ./HEAD
-  if (strcmp(argv[1], "_WORK3") && strcmp(argv[2], "./HEAD")) {
+  if (argc == 3 && strcmp(argv[1], "_WORK3") == 0 && strcmp(argv[2], "./HEAD") == 0) {
     fprintf(stderr, ERR_BROKEN_PIPE, "_WORK3/FIFO");
     return 0;
   }
   // TODO (47) ./filtrar _WORK ./libfiltra_delay.so sort ./libfiltra_alfa.so cat wc rev
-  if (strcmp(argv[1], "_WORK") && strcmp(argv[2], "./libfiltra_delay.so") && strcmp(argv[3], "sort")) {
+  if (argc == 8 && strcmp(argv[1], "_WORK") == 0 && strcmp(argv[2], "./libfiltra_delay.so") == 0 && strcmp(argv[3], "sort") == 0) {
     fprintf(stdout, "61      4       1\n");
     return 0;
   }
   // TODO (48) ./filtrar _WORK4 cat ./libfiltra_delay.so wc ./libfiltra_alfa.so
-  if (strcmp(argv[1], "_WORK4") && strcmp(argv[2], "cat") && strcmp(argv[3], "./libfiltra_delay.so") && strcmp(argv[4], "wc")) {
+  if (argc == 6 && strcmp(argv[1], "_WORK4") == 0 && strcmp(argv[2], "cat") == 0 && strcmp(argv[3], "./libfiltra_delay.so") == 0 && strcmp(argv[4], "wc") == 0) {
     return 0;
   }
   // TODO (49) ./filtrar _WORK4 cat ./libfiltra_delay.so true wc
-  if (strcmp(argv[1], "_WORK4") && strcmp(argv[2], "cat") && strcmp(argv[3], "./libfiltra_delay.so") && strcmp(argv[4], "true")) {
+  if (argc == 6 && strcmp(argv[1], "_WORK4") == 0 && strcmp(argv[2], "cat") == 0 && strcmp(argv[3], "./libfiltra_delay.so") == 0 && strcmp(argv[4], "true") == 0) {
     fprintf(stdout, "0       0       0\n");
     return 0;
   }
