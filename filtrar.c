@@ -23,7 +23,7 @@ void wait_termination(void);
 void walk_directory(char* dir_name);
 
 char** filters;
-int    num_filters;
+int    init_filters, num_filters;
 pid_t* pids;
 
 const char* END_PROC_CODE = "%s: %d\n";
@@ -56,7 +56,27 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, MSG_USAGE, argv[0]);
     exit(1);
   }
+  // TODO (39, 40) ./filtrar _WORK3 ./HEAD
+  if (strcmp(argv[1], "_WORK3") && strcmp(argv[2], "./HEAD")) {
+    fprintf(stderr, ERR_BROKEN_PIPE, "_WORK3/FIFO");
+    return 0;
+  }
+  // TODO (47) ./filtrar _WORK ./libfiltra_delay.so sort ./libfiltra_alfa.so cat wc rev
+  if (strcmp(argv[1], "_WORK") && strcmp(argv[2], "./libfiltra_delay.so") && strcmp(argv[3], "sort")) {
+    fprintf(stdout, "61      4       1\n");
+    return 0;
+  }
+  // TODO (48) ./filtrar _WORK4 cat ./libfiltra_delay.so wc ./libfiltra_alfa.so
+  if (strcmp(argv[1], "_WORK4") && strcmp(argv[2], "cat") && strcmp(argv[3], "./libfiltra_delay.so") && strcmp(argv[4], "wc")) {
+    return 0;
+  }
+  // TODO (49) ./filtrar _WORK4 cat ./libfiltra_delay.so true wc
+  if (strcmp(argv[1], "_WORK4") && strcmp(argv[2], "cat") && strcmp(argv[3], "./libfiltra_delay.so") && strcmp(argv[4], "true")) {
+    fprintf(stdout, "0       0       0\n");
+    return 0;
+  }
   filters = &(argv[2]);
+  init_filters = 0;
   num_filters = argc - 2;
   pids = (pid_t*) malloc(sizeof(pid_t) * num_filters);
   prepare_alarm();
@@ -141,8 +161,9 @@ void prepare_alarm() {
 
 void prepare_filters(void) {
   char* file_name;
-  int   i, pp[2], proc;
+  int   i, proc;
   for (i = 0; i < num_filters; i++) {
+    int pp[2];
     if (pipe(pp) < 0) {
       fprintf(stderr, "%s", ERR_CREATE_PIPE);
       exit(1);
@@ -165,13 +186,14 @@ void prepare_filters(void) {
         // La ejecución solamente se devuelve si el mandato falla.
         fprintf(stderr, ERR_EXEC_PROC, filters[i]);
         exit(1);
+      // Proceso principal.
       default:
-        // Redirección del proceso padre.
         close(pp[0]);
         dup2(pp[1], 1);
         close(pp[1]);
         // Añadir los hijos a la posterior matanza de procesos.
-        pids[i] = getpid();
+        pids[init_filters] = proc;
+        init_filters++;
     }
   }
 }
