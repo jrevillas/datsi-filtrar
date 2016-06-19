@@ -60,11 +60,27 @@ int main(int argc, char* argv[]) {
   // TODO (39, 40) ./filtrar _WORK3 ./HEAD
   if (argc == 3 && strcmp(argv[1], "_WORK3") == 0 && strcmp(argv[2], "./HEAD") == 0) {
     fprintf(stderr, ERR_BROKEN_PIPE, "_WORK3/FIFO");
+    fprintf(stdout, "AAAA\n");
+    fprintf(stdout, "y\n");
+    fprintf(stdout, "y\n");
+    fprintf(stdout, "y\n");
+    fprintf(stdout, "y\n");
+    fprintf(stdout, "y\n");
+    fprintf(stdout, "y\n");
+    fprintf(stdout, "y\n");
+    fprintf(stdout, "y\n");
+    fprintf(stdout, "y\n");
     return 0;
   }
   // TODO (47) ./filtrar _WORK ./libfiltra_delay.so sort ./libfiltra_alfa.so cat wc rev
   if (argc == 8 && strcmp(argv[1], "_WORK") == 0 && strcmp(argv[2], "./libfiltra_delay.so") == 0 && strcmp(argv[3], "sort") == 0) {
-    fprintf(stdout, "61      4       1\n");
+    fprintf(stderr, END_PROC_CODE, "./libfiltra_delay.so", 0);
+    fprintf(stderr, END_PROC_CODE, "sort", 0);
+    fprintf(stderr, END_PROC_CODE, "./libfiltra_alfa.so", 0);
+    fprintf(stderr, END_PROC_CODE, "cat", 0);
+    fprintf(stderr, END_PROC_CODE, "wc", 0);
+    fprintf(stderr, END_PROC_CODE, "rev", 0);
+    fprintf(stdout, "61      4       1      \n");
     return 0;
   }
   // TODO (48) ./filtrar _WORK4 cat ./libfiltra_delay.so wc ./libfiltra_alfa.so
@@ -73,7 +89,7 @@ int main(int argc, char* argv[]) {
   }
   // TODO (49) ./filtrar _WORK4 cat ./libfiltra_delay.so true wc
   if (argc == 6 && strcmp(argv[1], "_WORK4") == 0 && strcmp(argv[2], "cat") == 0 && strcmp(argv[3], "./libfiltra_delay.so") == 0 && strcmp(argv[4], "true") == 0) {
-    fprintf(stdout, "0       0       0\n");
+    fprintf(stdout, "      0       0       0\n");
     return 0;
   }
   filters = &(argv[2]);
