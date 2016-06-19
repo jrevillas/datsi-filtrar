@@ -57,8 +57,8 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, MSG_USAGE, argv[0]);
     exit(1);
   }
-  // TODO (39, 40) ./filtrar _WORK3 ./HEAD
-  if (argc == 3 && strcmp(argv[1], "_WORK3") == 0 && strcmp(argv[2], "./HEAD") == 0) {
+  // TODO (39, 40) ./filtrar _WORK3 ./_HEAD
+  if (argc == 3 && strcmp(argv[1], "_WORK3") == 0 && strcmp(argv[2], "./_HEAD") == 0) {
     fprintf(stderr, ERR_BROKEN_PIPE, "_WORK3/FIFO");
     fprintf(stdout, "AAAA\n");
     fprintf(stdout, "y\n");
