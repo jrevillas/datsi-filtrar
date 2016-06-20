@@ -24,7 +24,7 @@ void wait_termination(void);
 void walk_directory(char* dir_name);
 
 char** filters;
-int    init_filters, num_filters;
+int    num_filters;
 pid_t* pids;
 
 const char* END_PROC_CODE = "%s: %d\n";
@@ -93,7 +93,6 @@ int main(int argc, char* argv[]) {
     return 0;
   }
   filters = &(argv[2]);
-  init_filters = 0;
   num_filters = argc - 2;
   pids = (pid_t*) malloc(sizeof(pid_t) * num_filters);
   prepare_alarm();
@@ -178,9 +177,8 @@ void prepare_alarm() {
 
 void prepare_filters(void) {
   char* file_name;
-  int   i, proc;
+  int   i, pp[2], proc;
   for (i = 0; i < num_filters; i++) {
-    int pp[2];
     if (pipe(pp) < 0) {
       fprintf(stderr, "%s", ERR_CREATE_PIPE);
       exit(1);
@@ -209,8 +207,7 @@ void prepare_filters(void) {
         dup2(pp[1], 1);
         close(pp[1]);
         // Añadir los hijos a la posterior matanza de procesos.
-        pids[init_filters] = proc;
-        init_filters++;
+        pids[i] = proc;
     }
   }
 }
